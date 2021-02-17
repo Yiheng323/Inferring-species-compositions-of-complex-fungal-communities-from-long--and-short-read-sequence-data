@@ -1,0 +1,17 @@
+# Below are the command for raw illumina fastq files
+
+# Step1: trim adapters with Trimomatic. Here I'm showing the command using one sample (PT) as an example.
+
+(base) yiheng@fisher:~/data/mock_com/illumina$ java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 24 \
+                                               MC1_CGJHF_GTAGAGGA-TTATGCGA_L001_R1.fastq.gz MC1_CGJHF_GTAGAGGA-TTATGCGA_L001_R2.fastq.gz \
+                                               MC1_forward_paired_minlen50.fastq.gz MC1_forward_unpaired_minlen50.fastq.gz \
+                                               MC1_reverse_paired_minlen50.fastq.gz MC1_reverse_unpaired_minlen50.fastq.gz \
+                                               ILLUMINACLIP:Mix_PEadapters.fa:2:20:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50
+                                               
+# Step2: merge forward and reverse paired end reads
+(base) yiheng@fisher:~/data/mock_com/illumina$ gunzip MC1_*_minlen50.fastq.gz
+(base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/fq2fa --merge --filter \
+                                               MC1_forward_paired_minlen50.fastq MC1_reverse_paired_minlen50.fastq MC1_merge.fasta
+                                               
+# Step3: assemble the merged illumina reads into contigs using IDBA_UD
+(base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/idba_ud -r MC1_merge.fasta -o ./MC1_assembly/
