@@ -74,9 +74,9 @@ yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/basecalled_metagenomics_m
 # Step4 (Only for amplicon data): I filtered out the nanopore long amplicon sequences based on the read length using a perl script 
 # I attached the script in this repository (Seq_filter.pl), which was downloaded from http://www.bioinformatics-made-simple.com
 # I used the reads >=2000 bps, which was kept in the 'sequences_too_long.fas'
-yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/basecalled_amplicon_mock/barcode01/barcode01_chopped$ perl ../../../Seq_filter.pl -i barcode01.guppy360.fasta 
-                                                                                                                                         -min 500 
-                                                                                                                                         -max 1999
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/basecalled_amplicon_mock/barcode01/barcode01_chopped$ perl Seq_filter.pl -i barcode01.guppy360.fasta 
+                                                                                                                                -min 500 
+                                                                                                                                -max 1999
 
  
  
