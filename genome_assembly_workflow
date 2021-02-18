@@ -1,0 +1,33 @@
+### This file summarized the commands and programmes used for the genome assembly of Candida rugosa, Candida mesorugosa and Cryptoccocus magnus.
+
+# Step1: flye assembly
+  flye --nano-raw workspace/${INPUT}.fastq --genome-size 20m --out-dir ${OUTPUT}/. --threads ${threads}
+
+# Step2: racon polish
+  # Here we need to first map all QC'd reads to contigs with minimap2
+  yiheng@fisher:~/MinION_data/racon_polish/candida_mesorugosa$ minimap2 candida_mesorugosa_flye.fasta single_barcode_merged.fastq \
+                                                                    > ./candida_mesorugosa_mapping.paf
+
+  # Secondly we need to polish the assembly for the first time using racon
+  yiheng@fisher:~/MinION_data/racon_polish/candida_mesorugosa$ racon single_barcode_merged.fastq \
+                                                                     candida_mesorugosa_mapping.paf \
+                                                                     candida_mesorugosa_flye.fasta \
+                                                                     > candida_mesorugosa_consensus_0.fasta
+  
+  # Then we can write a racon loop to polish the assembly for the next 9 times
+  yiheng@fisher:~/MinION_data/racon_polish/candida_mesorugosa$ for j in 0 1 2 3 4 5 6 7 8 
+  > do
+  > minimap2 ./candida_mesorugosa_consensus_${j}.fasta single_barcode_merged.fastq > candida_mesorugosa_mapping_${j}.paf
+  > racon ./single_barcode_merged.fastq candida_mesorugosa_mapping_${j}.paf ./candida_mesorugosa_consensus_${j}.fasta \
+                                                                      > ./candida_mesorugosa_consensus_$((j+1)).fasta
+  > done
+
+# Step3: Medaka polish. To set up Medaka we need to creat a conda environment.
+(medaka) yiheng@rsb0001610lx:/media/MassStorage/YH/racon_polish/candida_mesorugosa$ medaka_consensus -i single_barcode_merged.fastq \
+                                                                                                     -d candida_mesorugosa_consensus_9.fasta \
+                                                                                                     -o ../../medaka_polish/candida_mesorugosa \
+                                                                                                     -t 4 \
+                                                                                                     -m r941_min_high \
+                                                                                                     -b 50
+
+
