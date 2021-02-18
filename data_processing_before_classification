@@ -12,22 +12,22 @@
 (base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/fq2fa --merge --filter \
                                                MC1_forward_paired_minlen50.fastq MC1_reverse_paired_minlen50.fastq MC1_merge.fasta
                                                
-# Step3: assemble the merged illumina reads into contigs using IDBA_UD
+# Step3: (Only for shotgun metagenomics data) assemble the merged illumina reads into contigs using IDBA_UD
 (base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/idba_ud -r MC1_merge.fasta -o ./MC1_assembly/
 
-# Step4: mapp all illumina reads back to the contigs using bwa mem
+# Step4: (Only for shotgun metagenomics data) mapp all illumina reads back to the contigs using bwa mem
 (base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ ~/anaconda3/bin/bwa index MC1_contig.fa
 (base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ ~/anaconda3/bin/bwa mem -t 32 MC1_contig.fa \
                                                       ../MC1_forward_paired_minlen50.fastq ../MC1_reverse_paired_minlen50.fastq > MC1_bwa.sam
 
-# Step5: convert .sam file to .bam file and sort the .bam file using samtools v1.7
+# Step5: (Only for shotgun metagenomics data) convert .sam file to .bam file and sort the .bam file using samtools v1.7
 (base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ samtools view -S -b MC1_bwa.sam > MC1_bwa.bam
 (base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ samtools sort MC1_bwa.bam > MC1_bwa_sorted.bam
 
-# Step6: generate bedgraph using bedtools v2.26.0
+# Step6: (Only for shotgun metagenomics data) generate bedgraph using bedtools v2.26.0
 (base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ bedtools genomecov -ibam MC1_bwa_sorted.bam -bg > MC1_coverage.tab
 
-# Step7: Use python (3.7) to calculate the average coverage of each contig from the bedgraph
+# Step7: (Only for shotgun metagenomics data) Use python (3.7) to calculate the average coverage of each contig from the bedgraph
 import numpy as np
 import os
 import pandas as pd
