@@ -23,7 +23,7 @@
   > done
 
 # Step3: Medaka polish. To set up Medaka we need to creat a conda environment.
-(medaka) yiheng@rsb0001610lx:/media/MassStorage/YH/racon_polish/candida_mesorugosa$ medaka_consensus -i single_barcode_merged.fastq \
+  (medaka) yiheng@rsb0001610lx:/media/MassStorage/YH/racon_polish/candida_mesorugosa$ medaka_consensus -i single_barcode_merged.fastq \
                                                                                                      -d candida_mesorugosa_consensus_9.fasta \
                                                                                                      -o ../../medaka_polish/candida_mesorugosa \
                                                                                                      -t 4 \
