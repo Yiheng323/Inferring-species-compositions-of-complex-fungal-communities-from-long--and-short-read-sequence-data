@@ -1,0 +1,28 @@
+### This file summarized the commands and programmes used for construction of blast and kraken2 database
+### All blast and kraken2 analysis were conducted in the Gadi super computer from National Computational Infrastructure at the Australian National University, which uses the PBS job scheduler system.
+
+# Step1: Mask the repeat regions from the newly sequenced species.
+
+# Step2: concatenate the three genomes into the RefSeq fungal database fasta file
+
+# Step3: add the headers of the three genomes into taxonomic map
+
+# Step4: make the updated RefSeq fungal database with both updated fasta and updated taxonomy map
+$ makeblastdb -in ./refseq_fungi_updated.fna \
+                -input_type fasta \
+                  -parse_seqids \
+                    -dbtype nucl \
+                      -title refseq_fungi_updated \
+                        -out refseq_fungi_updated \
+                          -taxid_map ./tax_map_updated.txt
+
+
+
+# kraken database construction
+kraken2-build --download-taxonomy --threads 1 --db /k2_fungi_update
+kraken2-build --add-to-library refseq_fungi_updated.fna --db /k2_fungi_update
+kraken2-build --build --db /k2_fungi_update --threads 14
+
+
+
+
