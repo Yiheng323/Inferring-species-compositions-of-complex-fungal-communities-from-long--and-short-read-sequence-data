@@ -15,12 +15,12 @@
   
 # Step3: construct the blast database using makeblastdb
   makeblastdb -in ./refseq_fungi.genomic.fna \
-              -input_type fasta \
-              -parse_seqids \
-              -dbtype nucl \
-              -title refseq_fungi \
-              -out refseq_fungi \
-              -taxid_map ./tax_map.txt
+                -input_type fasta \
+                  -parse_seqids \
+                   -dbtype nucl \
+                    -title refseq_fungi \
+                      -out refseq_fungi \
+                        -taxid_map ./tax_map.txt
 
 # Construction of mock community database with three new genomes.
 # Step1: modify the headers of the three new genome assemblies, adding the species name into the headers. These headers will be considered as accessions in blast.
