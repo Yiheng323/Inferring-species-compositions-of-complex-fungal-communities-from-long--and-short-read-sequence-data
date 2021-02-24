@@ -65,6 +65,8 @@
                         -out mock_com_all \
                           -taxid_map ./tax_map_updated.txt
 
+# NOTE: an alternative way of making this custom database is to not add the tax_map.txt file but use the accessions for analysis later rather than using taxid.
+
 
 # kraken2 database construction. Three database were constructed in kraken2.
 # First is to download taxonomic database for all the custom databases.
