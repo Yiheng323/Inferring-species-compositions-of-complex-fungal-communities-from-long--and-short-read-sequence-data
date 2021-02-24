@@ -8,16 +8,47 @@
 
 # Construction of RefSeq fungal database
 # Step1: download RefSeq fungal genomic fna from https://ftp.ncbi.nlm.nih.gov/refseq/release/fungi/
+
 # Step2: I manually constructed the taxonomy map using nucl_gb.accession2taxid from ncbi.
 #        This is to only keep the accession.version and taxid columns, then remove the first line which is the header.
   cut -f 2,3 nucl_gb.accession2taxid | tail -n +2 > tax_map.txt
+  
 # Step3: construct the blast database using makeblastdb
-  makeblastdb -in ./refseq_fungi.genomic.fna -input_type fasta -parse_seqids -dbtype nucl -title refseq_fungi -out refseq_fungi -taxid_map ./tax_map.txt
+  makeblastdb -in ./refseq_fungi.genomic.fna \
+              -input_type fasta \
+              -parse_seqids \
+              -dbtype nucl \
+              -title refseq_fungi \
+              -out refseq_fungi \
+              -taxid_map ./tax_map.txt
 
 # Construction of mock community database with three new genomes.
-# Step1: concatenate all genomes (fasta) downloaded from ncbi and the draft assemblies together.
-# Step2: mask the contaminatied regions
+# Step1: modify the headers of the three new genome assemblies, adding the species name into the headers. These headers will be considered as accessions in blast.
+  perl -pi -e "s/^>/>candida_rugosa_local_/g" medaka_consensus_rugosa.fasta
+  perl -pi -e "s/^>/>candida_mesorugosa_local_/g" medaka_consensus_magnus.fasta
+  perl -pi -e "s/^>/>cryptococcus_magnus_local_/g" medaka_consensus_mesorugosa.fasta
 
+# Step2: grep all the headers from these new genomes into a new txt file, and add their taxid as another column to for update the tax_map (generated above).
+#        I add the taxid column using python but generally you could use commandline or directly copy and paste.
+#        taxid for candida rugosa is 5481, for candida mesorugosa is 1229076, for cryptococcus magnus is 104409
+  grep '>' medaka_consensus_rugosa.fasta | cut -c 2- > candida_rugosa_headers.txt
+
+# Step3: concatenate all genomes (fasta) downloaded from ncbi and the draft assemblies together using cat command.
+
+# Step4: modify the tax_map.txt by adding the three headers with taxid txt files.
+#        important note: The accession and taxid of candida auris (assembly ID: ASM118947v1) was missing in the nucl_gb.accession2taxid file at the time we downloaded.
+#        so I mannually made the tax_map for it and add to the tax_map.txt
+  cat tax_map.txt *_headers_updated.txt > tax_map_updated.txt
+
+# Step5: mask the contaminatied regions according to Lu and Salzberg (2018).
+#        first is to run a kraken analysis aganst standard database, 
+#        it contains RefSeq bacterial, archaeal, and viral domains, along with the human genome and a collection of known vectors (UniVec_Core)
+  kraken2 --db k2_standard --threads 14 ./genome_reference_mock_final.fna > genome_reference_mock.standardkraken2_output
+  
+#        second is to mask those regions that found exact kmer matches.
+#        to achieve this, I fist converted the kraken output file into bed file with python (separate script attached), then used bedtools to mask the fasta.
+  python kraken2_to_bed.py
+  
 # Step2: concatenate the three genomes into the RefSeq fungal database fasta file
 
 # Step3: add the headers of the three genomes into taxonomic map
