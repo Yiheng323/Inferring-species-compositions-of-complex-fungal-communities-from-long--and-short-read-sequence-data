@@ -40,38 +40,46 @@
 #        so I mannually made the tax_map for it and add to the tax_map.txt
   cat tax_map.txt *_headers_updated.txt > tax_map_updated.txt
 
-# Step5: mask the contaminatied regions according to Lu and Salzberg (2018).
-#        first is to run a kraken analysis aganst standard database, 
+# Step5: mask the contaminatied regions according to Lu and Salzberg (2018). This step is a bit complicated which contains four steps itself.
+#        first is to run a kraken analysis aganst standard database (database construction showed in the kraken database construction section), 
 #        it contains RefSeq bacterial, archaeal, and viral domains, along with the human genome and a collection of known vectors (UniVec_Core)
   kraken2 --db k2_standard --threads 14 ./genome_reference_mock_final.fna > genome_reference_mock.standardkraken2_output
   
 #        second is to mask those regions that found exact kmer matches.
-#        to achieve this, I fist converted the kraken output file into bed file with python (separate script attached), then used bedtools to mask the fasta.
+#        to achieve this, I fist converted the kraken output file into bed file with python pandas module(separate script attached), then used bedtools to mask the fasta.
   python kraken2_to_bed.py
+  bedtools maskfasta -fi genome_reference_mock_final.fna -fo genome_reference_mock_final.contaimination_masked.fna -bed genome_reference_mock_final.contamination_added.bed
+
+#        third is to mask the low complex region using dustmasker from blast package
+  dustmasker -in genome_reference_mock_final.contaimination_masked.fna -out genome_reference_mock_final.dustmasked.fna -outfmt fasta
+
+#        fourth is to reformat the masked region with x and converted all lower cases to uper cases using sed command. This idea is from kraken2 masking process.
+  sed -e '/^>/!s/[a-z]/x/g' genome_reference_mock_final.dustmasked.fna > genome_reference_mock_final.masked.fna
   
-# Step2: concatenate the three genomes into the RefSeq fungal database fasta file
-
-# Step3: add the headers of the three genomes into taxonomic map
-
-# Step4: make the updated RefSeq fungal database with both updated fasta and updated taxonomy map
-$ makeblastdb -in ./refseq_fungi_updated.fna \
+# Step6: make the mock community database with both masked fasta and updated taxonomy map
+  makeblastdb -in ./genome_reference_mock_final.masked.fna \
                 -input_type fasta \
                   -parse_seqids \
                     -dbtype nucl \
-                      -title refseq_fungi_updated \
-                        -out refseq_fungi_updated \
+                      -title mock_com_all \
+                        -out mock_com_all \
                           -taxid_map ./tax_map_updated.txt
 
 
-
-# kraken database construction
+# kraken2 database construction. Three database were constructed in kraken2.
+# First is to download taxonomic database for all the custom databases.
   kraken2-build --download-taxonomy --threads 1 --db $DBNAME
-  # For RefSeq fungal database
-  kraken2-build --add-to-library refseq_fungi_updated.fna --db /k2_fungi_update
-  kraken2-build --build --db /k2_fungi_update --threads 14
-  # For ncbi nt database
+  
+# For kraken2 standard database. The construction of standard database will also download the taxonomic database.
+  kraken2-build --standard --db /k2_standard --threads 14
+  
+# For RefSeq fungal database. The fasta file is concatenated from above.
+  kraken2-build --add-to-library refseq_fungi.fna --db /k2_fungi
+  kraken2-build --build --db /k2_fungi --threads 14
+  
+# For ncbi nt database
   kraken2-build --download-library nt --threads 32 --db /k2_nt
-  kraken2-build --build --db /k2_nt --thread 1
+  kraken2-build --build --db /k2_nt --thread 14
   
 
 
