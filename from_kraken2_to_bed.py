@@ -13,7 +13,7 @@ import pandas as pd
 
 
 basedir = '/home/yiheng/MinION_data' # the directory where all the documents of each sequencing run are stored.
-k2_output_db = pd.read_csv(os.path.join(basedir, 'genome_reference_mock.contamination_added.standardkraken2_output'), sep='\t', header=None)
+k2_output_db = pd.read_csv(os.path.join(basedir, 'genome_reference_mock.standardkraken2_output'), sep='\t', header=None)
 
 
 # In[3]:
@@ -96,7 +96,7 @@ bed_df_final = bed_df_final[['accession', 'start', 'end']]
 # In[13]:
 
 
-bed_df_final.to_csv(os.path.join(basedir, 'genome_reference_mock_final.contamination_added.bed'), sep='\t', header=False, index=False)
+bed_df_final.to_csv(os.path.join(basedir, 'genome_reference_mock_final.bed'), sep='\t', header=False, index=False)
 
 
 # In[ ]:
