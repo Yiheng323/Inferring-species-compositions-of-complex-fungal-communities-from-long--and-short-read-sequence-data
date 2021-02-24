@@ -68,7 +68,7 @@
 # NOTE: an alternative way of making this custom database is to not add the tax_map.txt file but use the accessions for analysis later rather than using taxid.
 
 
-# kraken2 database construction. Three database were constructed in kraken2.
+# kraken2 database construction. Seven database were constructed in kraken2.
 # First is to download taxonomic database for all the custom databases.
   kraken2-build --download-taxonomy --threads 1 --db $DBNAME
   
