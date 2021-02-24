@@ -47,7 +47,7 @@
   
 #        second is to mask those regions that found exact kmer matches.
 #        to achieve this, I fist converted the kraken output file into bed file with python pandas module(separate script attached), then used bedtools to mask the fasta.
-  python kraken2_to_bed.py
+  python from_kraken2_to_bed.py
   bedtools maskfasta -fi genome_reference_mock_final.fna -fo genome_reference_mock_final.contaimination_masked.fna -bed genome_reference_mock_final.contamination_added.bed
 
 #        third is to mask the low complex region using dustmasker from blast package
