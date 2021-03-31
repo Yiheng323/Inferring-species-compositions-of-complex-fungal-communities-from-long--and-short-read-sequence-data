@@ -1,0 +1,82 @@
+### Below are the commands for raw illumina processing before the classification. The installation of each programme can either be done by anaconda or refer to the programme's github page.
+
+# Step1: trim adapters with Trimomatic. Here I'm showing the command using one sample (PT) as an example.
+(base) yiheng@fisher:~/data/mock_com/illumina$ java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 24 \
+                                               MC1_CGJHF_GTAGAGGA-TTATGCGA_L001_R1.fastq.gz MC1_CGJHF_GTAGAGGA-TTATGCGA_L001_R2.fastq.gz \
+                                               MC1_forward_paired_minlen50.fastq.gz MC1_forward_unpaired_minlen50.fastq.gz \
+                                               MC1_reverse_paired_minlen50.fastq.gz MC1_reverse_unpaired_minlen50.fastq.gz \
+                                               ILLUMINACLIP:Mix_PEadapters.fa:2:20:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50
+
+# Step2: merge forward and reverse paired end reads
+(base) yiheng@fisher:~/data/mock_com/illumina$ gunzip MC1_*_minlen50.fastq.gz
+(base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/fq2fa --merge --filter \
+                                               MC1_forward_paired_minlen50.fastq MC1_reverse_paired_minlen50.fastq MC1_merge.fasta
+
+# Step3: (Only for shotgun metagenomics data) assemble the merged illumina reads into contigs using IDBA_UD
+(base) yiheng@fisher:~/data/mock_com/illumina$ ~/idba/bin/idba_ud -r MC1_merge.fasta -o ./MC1_assembly/
+
+# Step4: (Only for shotgun metagenomics data) mapp all illumina reads back to the contigs using bwa mem
+(base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ ~/anaconda3/bin/bwa index MC1_contig.fa
+(base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ ~/anaconda3/bin/bwa mem -t 32 MC1_contig.fa \
+                                                      ../MC1_forward_paired_minlen50.fastq ../MC1_reverse_paired_minlen50.fastq > MC1_bwa.sam
+
+# Step5: (Only for shotgun metagenomics data) convert .sam file to .bam file and sort the .bam file using samtools v1.7
+(base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ samtools view -S -b MC1_bwa.sam > MC1_bwa.bam
+(base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ samtools sort MC1_bwa.bam > MC1_bwa_sorted.bam
+
+# Step6: (Only for shotgun metagenomics data) generate bedgraph using bedtools v2.26.0
+(base) yiheng@fisher:~/data/mock_com/illumina/MC1_bwa$ bedtools genomecov -ibam MC1_bwa_sorted.bam -bg > MC1_coverage.tab
+
+# Step7: (Only for shotgun metagenomics data) Use python (3.7) to calculate the average coverage of each contig from the bedgraph
+import numpy as np
+import os
+import pandas as pd
+
+BASEDIR = '/home/yiheng/data/mock_com/illumina/'
+name = 'MC1'
+dataframe = os.path.join(BASEDIR, '%s_coverage.tab' % name)
+bedgraph = pd.read_csv(dataframe, header=None, names=['contig', 'start', 'end', 'cov'], sep='\t')
+bedgraph['len'] = bedgraph.end - bedgraph.start
+bedgraph['total_cov'] = (bedgraph['len'])*(bedgraph['cov'])
+bed_pivot = pd.pivot_table(bedgraph, values=['len', 'total_cov'], index='contig', aggfunc={'len': np.sum, 'total_cov': np.sum})
+bed_pivot['average_cov'] = bed_pivot.total_cov/bed_pivot.len
+bed_pivot.to_csv(os.path.join(BASEDIR, '%s_average_coverage.tab' % name), header=False, sep='\t')
+
+
+### Below are the commands for nanopore data processing. All three programmes are from Oxford Nanopre Technology and have detailed installation guide on their website.
+
+# Step2: barcode demultiplexing with deepbinner
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/metagenomics_mock$ ~/anaconda3/bin/deepbinner realtime --in_dir . \
+                                                                                                              --out_dir ../deepbinned_metagenomics_mock/. \
+                                                                                                              --native
+
+# Step2: basecalling of raw fast5 to fastq using Guppy v3.6.0
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/deepbinned_metagenomics_mock$ ~/ont-guppy/bin/guppy_basecaller -i barcode01/ \
+                                                                                                                      -s ../basecalled_metagenomics_mock/barcode01/. \
+                                                                                                                      -c dna_r9.4.1_450bps_hac.cfg \
+                                                                                                                      --device auto \
+                                                                                                                      --qscore_filtering \
+                                                                                                                      --min_qscore 7 \
+                                                                                                                      -q 0 \
+                                                                                                                      -r
+
+# Step3: trim the adapters and barcode sequences using qcat. Here I used a for loop in commandline but can be done one by one.
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/basecalled_metagenomics_mock$ for name in ./*; 
+                                                                                      do cat ./${name}/pass/*.fastq | \
+                                                                                         ~/anaconda3/bin/qcat -b ./${name}/${name}_chopped/. \
+                                                                                                              --trim \
+                                                                                                              -k NBD103/NBD104 \
+                                                                                                              --guppy; \
+                                                                                      done
+
+
+
+# Step4 (Only for amplicon data): I filtered out the nanopore long amplicon sequences based on the read length using a perl script 
+# I attached the script in this repository (Seq_filter.pl), which was downloaded from http://www.bioinformatics-made-simple.com
+# I used the reads >=2000 bps, which was kept in the 'sequences_too_long.fas'
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/basecalled_amplicon_mock/barcode01/barcode01_chopped$ perl Seq_filter.pl -i barcode01.guppy360.fasta 
+                                                                                                                                -min 500 
+                                                                                                                                -max 1999
+
+
+
