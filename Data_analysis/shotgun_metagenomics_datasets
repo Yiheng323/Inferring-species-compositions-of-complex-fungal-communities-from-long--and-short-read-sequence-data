@@ -1,5 +1,7 @@
+### This file summarized the commands and programmes used for the data analysis of the shotgun metagenomics datasets.
 
-
+# Here is the general commands for BLAST analysis of both quality filtered nanopore reads and illumina contigs
+# I used 14 cpus and 300 Gb memory for the analysis
 /home/106/yh7166/myapps/ncbi-blast-2.10.0+/bin/blastn -query $query 
                                                       -db $db 
                                                       -evalue 0.01 
