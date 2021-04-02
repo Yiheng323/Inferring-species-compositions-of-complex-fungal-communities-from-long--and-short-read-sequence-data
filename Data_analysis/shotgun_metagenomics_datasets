@@ -1,0 +1,9 @@
+
+
+/home/106/yh7166/myapps/ncbi-blast-2.10.0+/bin/blastn -query $query 
+                                                      -db $db 
+                                                      -evalue 0.01 
+                                                      -outfmt '6 qseqid sseqid evalue bitscore length pident nident sgi sacc staxids sscinames scomnames sskingdoms sstart send' 
+                                                      -show_gis 
+                                                      -num_threads $threads | sort -k1,1 -k4,4nr | sort -u -k1,1 --merge > $output
+                                                      # The sort commands above is to extract the best hit for each blast query
