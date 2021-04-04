@@ -1,5 +1,63 @@
 
 
 # We used QIIME2 pipeline for the illumina amplicon data analysis. 
-# The database we used was the otus_99.fasta from the its_12_11_otus.tar.gz release (UNITE) downloaded from http://qiime.org/home_static/dataFiles.html
-# We have tried several other OTU databases but this one works the best for both illumina and nanopore datasets, so we used this one for better comparison.
+
+# Step 1: Import the datasets to qiime2
+#         The key of this step is to have the correct name of each dataset so that qiime2 can correctly recognize the format of the data.
+#         Normally the file name given by the illumina machine is fine, but sometimes it may need modifications. Here is one example of my modification
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ mv IE1-ITS_BWF7H_CTCTCTAC-CCTAGAGT_L001_R1.fastq.gz IE1-ITS_BWF7H_CTCTCTAC-CCTAGAGT_L001_R1_001.fastq.gz
+
+#         Now it can be recognized as the CasavaOneEight format
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ for name in IE*
+                                    > do qiime tools import --type SampleData[PairedEndSequencesWithQuality] \
+                                                            --input-path ${name} \
+                                                            --output-path ./${name}/20200717_${name}_paired_end.qza \
+                                                            --input-format CasavaOneEightSingleLanePerSampleDirFmt
+                                    > done
+
+# Step 2: Denoise the data with DADA2 pipeline.
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ for name in IE*
+                                    > do qiime dada2 denoise-paired --i-demultiplexed-seqs ./${name}/20200717_${name}_paired_end.qza \
+                                                                    --p-trunc-len-f 298 \
+                                                                    --p-trunc-len-r 298 \
+                                                                    --p-trim-left-f 10 \
+                                                                    --p-trim-left-r 7 \
+                                                                    --output-dir ./${name}/20200717_DADA2/
+                                    > done
+ 
+# Step 3: Import the database and fit a classifier for it.
+#         The database we used was the otus_99.fasta from the its_12_11_otus.tar.gz release (UNITE) downloaded from http://qiime.org/home_static/dataFiles.html
+#         We have tried several other OTU databases but this one works the best for both illumina and nanopore datasets, so we used this one for better comparison.
+#         Before importing it for qiime2 analysis, we will need to convert it to a qiime2 readable format, converted it into a qiime importable format.
+#         Basically, we converted all lower cases into upper cases, and then get rid of all residual Ns, then remove the special characters.
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/its_12_11_otus$ awk 'BEGIN{FS=" "}{if(!/>/){print toupper($0)}else{print $1}}' rep_seqs/99_otus.fasta > 99_otus_uppercase.fasta
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/its_12_11_otus$ seqkit -is replace -p "n+$" -r "" 99_otus_uppercase.fasta > 99_otus_uppercase_Nremoved.fasta
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/its_12_11_otus$ vim 99_otus_uppercase_Nremoved.fasta
+#         Now the database (and taxonomy) can be successfully imported to qiime2
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/its_12_11_otus$ qiime tools import --type FeatureData[Sequence] \
+                                                                              --input-path ./99_otus_uppercase_Nremoved.fasta \
+                                                                              --output-path ../qiime2_analysis/99_otus.qza 
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/its_12_11_otus$ qiime tools import --type FeatureData[Taxonomy] \
+                                                                              --input-path taxonomy/99_otu_taxonomy.txt \
+                                                                              --output-path ../qiime2_analysis/99_otus_taxonomy.qza \
+                                                                              --input-format HeaderlessTSVTaxonomyFormat
+
+# Step 4: Train the naive bayes classifier with the database.
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ qiime feature-classifier fit-classifier-naive-bayes --i-reference-reads 99_otus.qza \
+                                                                                                                --i-reference-taxonomy 99_otus_taxonomy.qza \
+                                                                                                                --o-classifier 99_otus_classifier.qza
+                                                                                                                
+# Step 5: Classification with the trained classifier.
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ for name in IE* 
+                                    > do qiime feature-classifier classify-sklearn --i-classifier 99_otus_classifier.qza \
+                                                                                   --i-reads ${name}/20200717_DADA2/representative_sequences.qza \
+                                                                                   --o-classification ${name}/taxonomy_99_otu_paired_end_${name}.qza;
+                                    > done
+
+# Step 6: Convert the output qza file into qzv file for visualization and analysis.
+(qiime2-2020.6) yiheng@rsb-u5580079:/mnt/d/qiime2_analysis$ for name in IE* 
+                                    > do qiime metadata tabulate --m-input-file ${name}/taxonomy_99_otu_paired_end_${name}.qza \
+                                                                 --o-visualization ${name}/taxonomy_99_otu_paired_end_${name}.qzv 
+                                    > done
+
+
