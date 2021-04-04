@@ -1,5 +1,3 @@
-
-
 # We used QIIME2 pipeline for the illumina amplicon data analysis. 
 
 # Step 1: Import the datasets to qiime2
