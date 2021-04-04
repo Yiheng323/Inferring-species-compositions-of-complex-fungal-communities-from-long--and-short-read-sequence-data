@@ -1,0 +1,5 @@
+
+
+# We used QIIME2 pipeline for the illumina amplicon data analysis. 
+# The database we used was the otus_99.fasta from the its_12_11_otus.tar.gz release (UNITE) downloaded from http://qiime.org/home_static/dataFiles.html
+# We have tried several other OTU databases but this one works the best for both illumina and nanopore datasets, so we used this one for better comparison.
