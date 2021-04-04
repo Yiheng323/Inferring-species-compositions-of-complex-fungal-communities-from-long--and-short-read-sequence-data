@@ -1,1 +1,8 @@
+# We first used minimap2 to map nanopore amplicon data against different ITS and 18S and 28S databases.
+# Because different datasets (including technical replicates) are labelled by different barcodes, we used the loop commands for all datasets
 
+# The first database is the ncbi ITS database.
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont fungi.ITS.fna ${name}/${name}_ITS.fasta > ${name}/${name}_ITS.paf; done
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont fungi.28SrRNA.fna ${name}/${name}_ITS.fasta > ${name}/${name}_28S.paf; done
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont fungi.18SrRNA.fna ${name}/${name}_ITS.fasta > ${name}/${name}_18S.paf; done
+yiheng@RSB0001610:/media/WorkingStorage/yiheng.working/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont 99_otus.fasta ${name}/${name}_ITS.fasta > ${name}/${name}_unite99ITS.paf; done
