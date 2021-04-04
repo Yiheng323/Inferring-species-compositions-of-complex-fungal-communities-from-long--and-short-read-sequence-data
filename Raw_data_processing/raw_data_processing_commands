@@ -1,4 +1,5 @@
 ### Below are the commands for raw illumina processing before the classification. The installation of each programme can either be done by anaconda or refer to the programme's github page.
+### The processing of merged paired end illumina amplicon datasets are summarized in the data analysis as we used qiime2 programme for all data processing and analysis.
 
 # Step1: trim adapters with Trimomatic. Here I'm showing the command using one sample (PT) as an example.
 (base) yiheng@fisher:~/data/mock_com/illumina$ java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar PE -threads 24 \
