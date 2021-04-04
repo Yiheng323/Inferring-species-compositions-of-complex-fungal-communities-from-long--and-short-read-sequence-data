@@ -6,3 +6,9 @@ yiheng@RSB0001610:/media/analysis_nanopore_amplicon$ for name in barcode*; do mi
 yiheng@RSB0001610:/media/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont fungi.28SrRNA.fna ${name}/${name}_ITS.fasta > ${name}/${name}_28S.paf; done
 yiheng@RSB0001610:/media/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont fungi.18SrRNA.fna ${name}/${name}_ITS.fasta > ${name}/${name}_18S.paf; done
 yiheng@RSB0001610:/media/analysis_nanopore_amplicon$ for name in barcode*; do minimap2 -x ava-ont 99_otus.fasta ${name}/${name}_ITS.fasta > ${name}/${name}_unite99ITS.paf; done
+
+# Here is the general commands for kraken2 analysis of quality filtered nanopore amplicon data
+# I used 16 cpus and 150 Gb memory for the analysis
+module load kraken2/2.0.8
+export KRAKEN2_DB_PATH="/scratch/cq95/yh7166/db:"
+kraken2 --db $db --threads $threads ./barcode01.guppy360.ITS.fasta > ./barcode01_amplicon.${dbname}_output
