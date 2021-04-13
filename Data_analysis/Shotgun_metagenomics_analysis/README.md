@@ -7,4 +7,4 @@ Step4 is to assess and select cut-offs for the blast results from publically ava
 
 Step5 is to generate the community composition for each datasets, and compare the similarity of them with the gold standard analysis. This step is partially done in the Plot_figure5B script.
 
-Step6 is to apply progressive cut-offs on the query coverage and re-calculate the change of similarities between the gold standard classification and the 'best practice' of each dataset.
+Step6 is to apply progressive cut-offs on the query coverage and re-calculate the change of similarities between the gold standard classification and the 'best practice' of each dataset. After this step we could plot figure 5C, 5D and 5E using the Plot_figure5C&D&E script.
