@@ -82,6 +82,15 @@
 # For ncbi nt database
   kraken2-build --download-library nt --threads 32 --db /k2_nt
   kraken2-build --build --db /k2_nt --thread 14
-  
 
+# I used the ncbi ITS database as an example for the construction of amplicon database in kraken2.
+  kraken2-build --add-to-library fungi.ITS.fna --db /scratch/cq95/yh7166/db/k2_ncbi_ITS
+  kraken2-build --build --db /scratch/cq95/yh7166/db/k2_ncbi_ITS --threads 14
+# Below is a example output for successful construction of the amplicon database.
+  Found 11449/11456 targets, searched through 750580161 accession IDs, search complete.
+  lookup_accession_numbers: 7/11456 accession numbers remain unmapped, see unmapped.txt in DB directory
+  Taxonomy parsed and converted.
+  CHT created with 14 bits reserved for taxid.
+  Completed processing of 11455 sequences, 6742938 bp
+  Writing data to disk...  complete.
 
